@@ -1,0 +1,95 @@
+<!doctype html>
+<html lang="en">
+
+    <head>
+        <title>Title</title>
+        <!-- Required meta tags -->
+        <meta charset="utf-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+
+        <!-- Bootstrap CSS -->
+        <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css"
+            integrity="sha384-ggOyR0iXCbMQv3Xipma34MD+dH/1fQ784/j6cY/iJTQUOhcWr7x9JvoRxT2MZw1T" crossorigin="anonymous">
+    </head>
+
+    <body>
+
+        <div class="container">
+            <div class="row">
+                <h3>Chat Room <span id="room_id"></span></h3>
+            </div>
+            <div class="row">
+                <h3>User <input type="text" id="user_name"></h3>
+            </div>
+            <div class="card">
+                <div class="card-body" id="msg_area">
+
+                </div>
+                <div class="card-footer p-0">
+                    <div class="input-group m-0">
+                        <input type="text" id="send-input" class="form-control" placeholder="Message Here...">
+                        <div class="input-group-append">
+                            <button class="btn btn-outline-secondary" id="send-btn" type="button">send</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Optional JavaScript -->
+        <!-- jQuery first, then Popper.js, then Bootstrap JS -->
+        <script src="https://code.jquery.com/jquery-3.6.0.min.js"
+            integrity="sha256-/xUj+3OJU5yExlq6GSYGSHk7tPXikynS7ogEvDej/m4=" crossorigin="anonymous"></script>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.14.7/umd/popper.min.js"
+            integrity="sha384-UO2eT0CpHqdSJQ6hJty5KVphtPhzWj9WO1clHTMGa3JDZwrnQq4sF86dIHNDz0W1"
+            crossorigin="anonymous"></script>
+        <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/js/bootstrap.min.js"
+            integrity="sha384-JjSmVgyd0p3pXB1rRibZUAYoIIy6OrQ6VrjIEaFf/nJGzIxFDsf4x0xIM+B07jRM"
+            crossorigin="anonymous"></script>
+
+
+        <script>
+            $(document).ready(function () {
+                let roomId = prompt("Please enter room id", "2022");
+                $("#room_id").html(roomId)
+                $("#user_name").val("default user")
+
+                const ws = new WebSocket("ws://localhost:3000/ws?roomId=" + roomId)
+
+                ws.onmessage = function (event) {
+                    var message = JSON.parse(event.data);
+                    console.log(message)
+
+                    switch (message.type) {
+                        case "info":
+                            $("#msg_area").append("<h6 class='text-center text-muted mb-2'>total users in this room is " + message.count + " </h6>");
+                            break
+
+                        case "msg":
+                            $("#msg_area").append('<h5 class="m-0 ">' + message.payload + '</h5>\
+                                                    <span class="text-sm text-muted mb-2">'+ message.sender + '</span>\
+                                                ');
+                            break
+                    }
+                }
+
+
+                $("#send-btn").click(function () {
+                    var sendInput = $("#send-input").val();
+                    var name = $("#user_name").val();
+                    var sendResponse = {
+                        "type": "msg",
+                        "payload": sendInput,
+                        "sender": name,
+                    }
+                    ws.send(JSON.stringify(sendResponse));
+                    $("#send-input").val();
+
+                })
+
+            });
+        </script>
+
+    </body>
+
+</html>
